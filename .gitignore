@@ -1,0 +1,22 @@
+# Skill-specific files
+skills/*/
+
+# Config (machine-specific)
+.skill-sync.conf
+.sync-state.json
+.env
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor
+*.swp
+*.swo
+*~
+.idea/
+.vscode/
+
+# Backup files from sed
+*.bak
+*.pre-skillhub

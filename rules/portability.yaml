@@ -1,0 +1,69 @@
+# Portability detection rules for skill-sync check
+# Three levels: block (must fix), warn (should fix), info (nice to have)
+
+block:
+  - name: 绝对路径
+    pattern: '(?:/Users/|/home/)[\w.-]+/[\w/.-]+'
+    exclude_patterns:
+      - '~/.claude/skills/'
+      - '~/.cursor/skills/'
+      - '~/skill-hub/'
+    fix: "使用 \$HOME 或相对路径替代"
+
+  - name: 本机服务
+    pattern: '(?:localhost|127\.0\.0\.1|0\.0\.0\.0)(?::\d+)?'
+    fix: "移到环境变量: \${HOST:-localhost}:\${PORT:-8080}"
+
+  - name: 私有网络
+    pattern: '(?:10\.\d{1,3}\.\d{1,3}\.\d{1,3}|172\.(?:1[6-9]|2\d|3[01])\.\d{1,3}\.\d{1,3}|192\.168\.\d{1,3}\.\d{1,3}|100\.\d{1,3}\.\d{1,3}\.\d{1,3})'
+    fix: "移到环境变量或配置文件"
+
+  - name: 硬编码密钥
+    pattern: '(?:tvly-|fc-|sk-|AVNS_|sb_publishable_|ghp_|gho_|AKIA|AIza)[\w-]+'
+    fix: "移到环境变量并在 depends.env 中声明"
+
+warn:
+  - name: 框架专属工具调用
+    patterns:
+      - 'Skill\('
+      - 'mcp__[a-z_]+__'
+      - 'TodoWrite|TaskCreate'
+      - 'activate_skill'
+    fix: "使用 FRAMEWORK 条件段提供多框架适配"
+
+  - name: OS专属命令
+    patterns:
+      - 'networksetup'
+      - 'brew install'
+      - 'apt-get install'
+      - 'yum install'
+    fix: "提供跨平台替代或条件检测"
+
+  - name: 硬编码用户名
+    pattern: '/Users/[a-z]+/'
+    fix: "使用 \$HOME 替代"
+
+info:
+  - name: 可选依赖
+    patterns:
+      - 'fswatch'
+      - 'mitmproxy'
+      - 'pm2'
+      - 'docker'
+      - 'conda'
+    fix: "在 skill 头部 depends.tools 中声明"
+
+  - name: 未设默认值的环境变量
+    pattern: '\$\{?[A-Z_]{3,}\}?'
+    exclude:
+      - HOME
+      - PATH
+      - USER
+      - SHELL
+      - PWD
+      - LANG
+    fix: "提供默认值: \${VAR:-default}"
+
+  - name: 缺少依赖声明
+    check: "frontmatter_missing_depends"
+    fix: "在 SKILL.md 头部添加 depends 字段"

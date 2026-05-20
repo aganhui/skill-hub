@@ -1,0 +1,68 @@
+#!/usr/bin/env bash
+# skill-sync — Cross-machine, cross-framework skill management CLI
+# Usage: skill-sync <command> [args...]
+
+set -euo pipefail
+
+HUB_DIR="$(cd "$(dirname "$0")/.." && pwd)"
+CONF_FILE="$HUB_DIR/.skill-sync.conf"
+STATE_FILE="$HUB_DIR/.sync-state.json"
+
+# Source config if exists
+if [ -f "$CONF_FILE" ]; then
+    # shellcheck source=/dev/null
+    source "$CONF_FILE"
+fi
+
+usage() {
+    cat <<EOF
+skill-sync — Cross-machine, cross-framework skill management
+
+Usage: skill-sync <command> [options]
+
+Commands:
+  adopt   <name>           Move skill into hub and create symlinks
+  detach  <name>           Remove from hub, restore as real directory
+  check   <name>           Portability check (block/warn/info)
+  status                  Show sync status and managed skills
+  setup                   Rebuild all framework symlinks
+  sync                    Manual git sync (pull + commit + push)
+  doctor                  Health check for symlinks, cron, git
+  register                Register a new framework
+  list                    List all managed skills
+  cron                    Run sync (called by cron/launchd)
+
+Options:
+  --json                  Machine-readable JSON output
+  --fix                   Auto-fix portability issues (with adopt/check)
+  --security              Run security scan (with check)
+  --non-interactive       Skip all prompts
+
+EOF
+}
+
+cmd_adopt()   { bash "$HUB_DIR/lib/adopt.sh" "$@"; }
+cmd_detach()  { bash "$HUB_DIR/lib/detach.sh" "$@"; }
+cmd_check()   { bash "$HUB_DIR/lib/check.sh" "$@"; }
+cmd_status()  { bash "$HUB_DIR/lib/status.sh" "$@"; }
+cmd_setup()   { bash "$HUB_DIR/lib/setup.sh" "$@"; }
+cmd_sync()    { bash "$HUB_DIR/lib/sync.sh" "$@"; }
+cmd_doctor()  { bash "$HUB_DIR/lib/doctor.sh" "$@"; }
+cmd_register(){ bash "$HUB_DIR/lib/register.sh" "$@"; }
+cmd_list()    { bash "$HUB_DIR/lib/list.sh" "$@"; }
+cmd_cron()    { bash "$HUB_DIR/lib/sync.sh" --cron "$@"; }
+
+case "${1:-}" in
+    adopt)    shift; cmd_adopt "$@" ;;
+    detach)   shift; cmd_detach "$@" ;;
+    check)    shift; cmd_check "$@" ;;
+    status)   shift; cmd_status "$@" ;;
+    setup)    shift; cmd_setup "$@" ;;
+    sync)     shift; cmd_sync "$@" ;;
+    doctor)   shift; cmd_doctor "$@" ;;
+    register) shift; cmd_register "$@" ;;
+    list)     shift; cmd_list "$@" ;;
+    cron)     shift; cmd_cron "$@" ;;
+    -h|--help|help) usage ;;
+    *) echo "Unknown command: ${1:-}" >&2; usage >&2; exit 1 ;;
+esac
