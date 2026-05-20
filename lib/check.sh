@@ -198,7 +198,7 @@ main() {
         files_to_check+=("$f")
     done < <(find "$target_dir" -type f \( -name '*.md' -o -name '*.sh' -o -name '*.py' -o -name '*.yaml' -o -name '*.yml' \) -print0 2>/dev/null)
 
-    for file in "${files_to_check[@]}"; do
+    for file in "${files_to_check[@]+"${files_to_check[@]}"}"; do
         local rel_file="${file#$target_dir/}"
 
         # Portability checks
@@ -235,7 +235,7 @@ main() {
     done
 
     # Auto-fix if requested
-    if $AUTO_FIX && [ ${#issues[@]} -gt 0 ]; then
+    if $AUTO_FIX && [ ${#issues[@]+"${#issues[@]}"} -gt 0 ] 2>/dev/null && [ ${#issues[@]} -gt 0 ]; then
         auto_fix "$target_dir"
         # Re-check after fix
         exec bash "$0" "$TARGET" ${JSON_OUTPUT:+--json} ${SECURITY_MODE:+--security}
@@ -245,7 +245,7 @@ main() {
     if $JSON_OUTPUT; then
         local json_issues="["
         local first=true
-        for issue in "${issues[@]}"; do
+        for issue in "${issues[@]+"${issues[@]}"}"; do
             local level="${issue%%|*}"; local rest="${issue#*|}"
             local location="${rest%%|*}"; rest="${rest#*|}"
             local type="${rest%%|*}"; rest="${rest#*|}"
@@ -264,7 +264,7 @@ main() {
 
         if $SECURITY_MODE && [ $critical_count -gt 0 ]; then
             echo "🚨 危险 (必须移除):"
-            for issue in "${issues[@]}"; do
+            for issue in "${issues[@]+"${issues[@]}"}"; do
                 local level="${issue%%|*}"
                 [ "$level" != "critical" ] && continue
                 local rest="${issue#*|}"
@@ -275,7 +275,7 @@ main() {
 
         if [ $block_count -gt 0 ]; then
             echo "❌ 阻断 (必须修复):"
-            for issue in "${issues[@]}"; do
+            for issue in "${issues[@]+"${issues[@]}"}"; do
                 local level="${issue%%|*}"
                 [ "$level" != "block" ] && continue
                 local rest="${issue#*|}"
@@ -286,7 +286,7 @@ main() {
 
         if [ $warn_count -gt 0 ]; then
             echo "⚠️  警告 (建议修复):"
-            for issue in "${issues[@]}"; do
+            for issue in "${issues[@]+"${issues[@]}"}"; do
                 local level="${issue%%|*}"
                 [ "$level" != "warn" ] && continue
                 local rest="${issue#*|}"
@@ -297,7 +297,7 @@ main() {
 
         if [ $info_count -gt 0 ]; then
             echo "💡 提示 (可选优化):"
-            for issue in "${issues[@]}"; do
+            for issue in "${issues[@]+"${issues[@]}"}"; do
                 local level="${issue%%|*}"
                 [ "$level" != "info" ] && continue
                 local rest="${issue#*|}"

@@ -35,7 +35,7 @@ main() {
     if $JSON_OUTPUT; then
         local json="["
         local first=true
-        for entry in "${skills[@]}"; do
+        for entry in "${skills[@]+"${skills[@]}"}"; do
             local name="${entry%%:*}"
             local version="${entry#*:}"
             [ "$version" = "$name" ] && version=""
@@ -46,10 +46,10 @@ main() {
         json+="]"
         echo "$json"
     else
-        if [ ${#skills[@]} -eq 0 ]; then
+        if [ ${#skills[@]+"${#skills[@]}"} -eq 0 ] 2>/dev/null || [ ${#skills[@]} -eq 0 ]; then
             echo "没有已管理的 skill"
         else
-            for entry in "${skills[@]}"; do
+            for entry in "${skills[@]+"${skills[@]}"}"; do
                 local name="${entry%%:*}"
                 local version="${entry#*:}"
                 [ "$version" = "$name" ] && version=""
