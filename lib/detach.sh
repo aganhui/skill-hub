@@ -27,7 +27,9 @@ if [ -z "$SKILL_NAME" ]; then
 fi
 
 [ -f "$CONF_FILE" ] && source "$CONF_FILE"
-
+# Expand $HOME and ~ in FRAMEWORKS
+FRAMEWORKS="${FRAMEWORKS//$HOME/$HOME}"
+FRAMEWORKS="${FRAMEWORKS//~/$HOME}"
 main() {
     local hub_skill="$SKILLS_DIR/$SKILL_NAME"
 

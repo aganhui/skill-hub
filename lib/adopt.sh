@@ -28,7 +28,9 @@ fi
 
 # Source config
 [ -f "$CONF_FILE" ] && source "$CONF_FILE"
-
+# Expand $HOME and ~ in FRAMEWORKS
+FRAMEWORKS="${FRAMEWORKS//$HOME/$HOME}"
+FRAMEWORKS="${FRAMEWORKS//~/$HOME}"
 # Find the skill in any registered framework
 find_skill_source() {
     local fw_str="${FRAMEWORKS:-}"

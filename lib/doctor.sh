@@ -19,7 +19,9 @@ for arg in "$@"; do
 done
 
 [ -f "$CONF_FILE" ] && source "$CONF_FILE"
-
+# Expand $HOME and ~ in FRAMEWORKS
+FRAMEWORKS="${FRAMEWORKS//$HOME/$HOME}"
+FRAMEWORKS="${FRAMEWORKS//~/$HOME}"
 check_symlinks() {
     local broken=0
     local fixed=0

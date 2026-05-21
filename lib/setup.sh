@@ -15,6 +15,14 @@ for arg in "$@"; do
     esac
 done
 
+# Source config if exists
+if [ -f "$CONF_FILE" ]; then
+    set -a
+    # shellcheck source=/dev/null
+    source "$CONF_FILE"
+    set +a
+fi
+
 # Parse FRAMEWORKS from config
 # Format: FRAMEWORKS=cc:~/.claude/skills,cursor:~/.cursor/skills
 parse_frameworks() {
@@ -23,6 +31,9 @@ parse_frameworks() {
         echo "No frameworks configured. Run: skill-sync register" >&2
         return 1
     fi
+    # Expand $HOME in the string
+    fw_str="${fw_str//\$HOME/$HOME}"
+    fw_str="${fw_str//\~/$HOME}"
     echo "$fw_str"
 }
 

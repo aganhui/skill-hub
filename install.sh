@@ -114,11 +114,10 @@ setup_cron() {
     local interval="$1"
     local cron_min="*/$interval"
 
-    # Remove existing skill-sync cron entries
-    crontab -l 2>/dev/null | grep -v 'skill-sync' | crontab -
-
-    # Add new cron entry
-    (crontab -l 2>/dev/null; echo "$cron_min * * * * $HUB_DIR/bin/skill-sync cron") | crontab -
+    # Remove existing skill-sync cron entries, then add new one
+    local current
+    current=$(crontab -l 2>/dev/null | grep -v 'skill-sync' || true)
+    printf "%s\n%s * * * * %s/bin/skill-sync cron\n" "$current" "$cron_min" "$HUB_DIR" | crontab -
 
     echo "  ✅ 自动同步已启用 (每 $interval 分钟)"
 }
@@ -208,6 +207,8 @@ main() {
 
     # Setup symlinks
     source "$CONF_FILE"
+    FRAMEWORKS="${FRAMEWORKS//\$HOME/$HOME}"
+    FRAMEWORKS="${FRAMEWORKS//\~/$HOME}"
     bash "$HUB_DIR/lib/setup.sh"
     echo "  ✅ Symlinks 已创建"
 
