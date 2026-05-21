@@ -8,11 +8,15 @@
 
 > 安装 skill-hub skill
 
-或者手动安装：
+或者手动：
 
 ```bash
-git clone https://github.com/user/skill-hub.git ~/skill-hub
-cd ~/skill-hub && ./install.sh
+# 1. Fork 本仓库到你的 GitHub，设为 Private
+# 2. 克隆你的 fork
+git clone git@github.com:<你的用户名>/skill-hub.git ~/skill-hub
+cd ~/skill-hub && bash install.sh --non-interactive \
+  --frameworks "cc:$HOME/.claude/skills" --interval 5
+git remote add upstream git@github.com:aganhui/skill-hub.git
 ```
 
 ## 它能做什么
@@ -41,23 +45,78 @@ skill-hub (git repo)  ──symlink──→  各框架 skills 目录
 - 编辑任何框架里的 skill = 编辑 skill-hub 里的源文件
 - cron 自动 git commit + push + pull
 
-## 快速开始
+## 部署
 
-### 1. 安装
+### 首次部署（新机器）
+
+1. 在 GitHub 上 fork 本仓库，设为 **Private**
+2. 在新机器上执行：
 
 ```bash
-git clone https://github.com/user/skill-hub.git ~/skill-hub
-cd ~/skill-hub && ./install.sh
+# 克隆你自己的 fork
+git clone git@github.com:<你的用户名>/skill-hub.git ~/skill-hub
+
+# 非交互安装（指定框架和同步间隔）
+cd ~/skill-hub && bash install.sh --non-interactive \
+  --frameworks "cc:$HOME/.claude/skills" \
+  --interval 5
+
+# 添加上游仓库，以便同步工具更新
+git remote add upstream git@github.com:aganhui/skill-hub.git
 ```
 
-安装过程会：
-- 自动检测已安装的框架（CC、Cursor、Hermes 等）
-- 引导你选择要管理的框架
-- 配置 git 远程仓库（可选，纯本地也行）
-- 设置自动同步 cron
-- 在 CLAUDE.md 中注入 skill-hub 规则
+或者告诉 Claude Code：
 
-### 2. 迁移已有 skill
+> 帮我部署 skill-hub，按顺序执行以下步骤：
+> 1. 克隆私有仓库：git clone git@github.com:\<你的用户名\>/skill-hub.git ~/skill-hub
+> 2. 非交互安装：cd ~/skill-hub && bash install.sh --non-interactive --frameworks "cc:$HOME/.claude/skills" --interval 5
+> 3. 添加上游仓库：git remote add upstream git@github.com:aganhui/skill-hub.git
+> 4. 运行 skill-sync doctor 验证安装状态
+> 5. 运行 skill-sync status 确认 skill 列表
+
+### 双仓库说明
+
+| 仓库 | 用途 | 可见性 |
+|------|------|--------|
+| `upstream` → `aganhui/skill-hub` | 工具代码（bin/, lib/, docs/ 等） | 公开 |
+| `origin` → `<你的用户名>/skill-hub` | 你的 skill 数据（skills/ 目录） | 私有 |
+
+**核心规则：工具代码走 upstream，skill 数据走 origin。**
+
+## 更新
+
+### 同步工具更新（上游有新功能/修复）
+
+```bash
+cd ~/skill-hub
+git fetch upstream
+git merge upstream/main
+git push origin main
+```
+
+### 同步 skill 数据（多台机器之间）
+
+自动：cron 每 5 分钟执行 `skill-sync sync`（git pull + push）
+
+手动：
+
+```bash
+~/skill-hub/bin/skill-sync sync
+```
+
+### 入库/出库 skill
+
+```bash
+# 入库
+~/skill-hub/bin/skill-sync adopt my-skill
+
+# 出库（还原为独立目录）
+~/skill-hub/bin/skill-sync detach my-skill
+```
+
+## 快速开始
+
+### 迁移已有 skill
 
 ```bash
 # 查看哪些 skill 还没入库
@@ -70,7 +129,7 @@ cd ~/skill-hub && ./install.sh
 ~/skill-hub/bin/skill-sync adopt tavily-search --fix
 ```
 
-### 3. 新建 skill
+### 新建 skill
 
 在 CC 中创建新 skill 时，Claude 会询问是否加入 skill-hub。
 
@@ -78,15 +137,6 @@ cd ~/skill-hub && ./install.sh
 ```bash
 ~/skill-hub/bin/skill-sync adopt my-new-skill
 ```
-
-### 4. 第二台机器
-
-```bash
-git clone <your-skill-repo> ~/skill-hub
-cd ~/skill-hub && ./install.sh
-```
-
-自动拉取所有已有 skill 并部署到本机框架。
 
 ## 命令列表
 
